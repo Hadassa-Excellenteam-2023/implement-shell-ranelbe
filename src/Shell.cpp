@@ -58,7 +58,7 @@ std::string Shell::getCurrentDirectory() const
 {
     char cwd[PATH_MAX];
     return (getcwd(cwd, sizeof(cwd)) != nullptr) ?
-        std::string(cwd) : "Unknown Directory";
+        std::string(cwd) : ERROR_UNKNOWN_DIR;
 }
 
 
@@ -69,11 +69,11 @@ std::string Shell::getCurrentDirectory() const
 void Shell::changeDirectory(const std::vector<std::string>& tokens) const
 {
     if (tokens.size() < 2) {
-        throw "cd: Directory not specified\n";
+        throw std::runtime_error(ERROR_UNSPECIFIED_DIR);
     }
     std::string directory = tokens[1];
     if (chdir(directory.c_str()) != 0) {
-        throw "cd: Failed to change directory\n";
+        throw std::runtime_error(ERROR_CHANGE_DIR);
     }
 }
 
@@ -107,19 +107,19 @@ void Shell::executeCommand(const std::vector<std::string>& tokens, bool isBackgr
    //look for the executable file path
    std::string executablePath = findExecutablePath(command); 
    if (executablePath.empty()) {
-       throw std::runtime_error(command + ": Command not found.\n");
+       throw std::runtime_error(command + ": " + ERROR_COMMAND_NOT_FOUND);
    }
 
    // command found, create a child process to execute it
    pid_t pid = fork();
    if (pid == -1) {
-       throw std::runtime_error("Failed to create child process.\n");
+       throw std::runtime_error(ERROR_CREATE_CHILD);
    }
     
    // child process
    if (pid == 0) {
        executeChild(executablePath, tokens);
-       throw std::runtime_error("Failed to execute " + command + "\n");
+       throw std::runtime_error(command + ": " + ERROR_EXECUTE_COMMAND);
    }
 
    // parent process
@@ -193,7 +193,7 @@ void Shell::showJobs()
         } else if (result > 0) { // job has finished running
             it = m_jobs.erase(it);
         } else {
-            throw "Error checking process status\n";
+            throw std::runtime_error(ERROR_CHECK_STATUS);
             ++it;
         }
     }
