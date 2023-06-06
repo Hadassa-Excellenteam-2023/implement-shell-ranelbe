@@ -1,7 +1,8 @@
-#include <cstdlib>
-#include <iostream>
-#include <exception>
 #include "Shell.h"
+#include <iostream>
+#include <cstdlib>
+#include <exception>
+
 
 int main() try
 {
