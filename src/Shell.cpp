@@ -15,6 +15,7 @@ void Shell::run()
     std::cout << getCurrentDirectory() << "# ";
 	while (std::getline(std::cin, input))
 	{
+        cleanUpBackgroundJobs();
         std::vector<std::string> tokens = extractTokens(input);
 
         if (tokens.size() != 0) { // command is not empty
@@ -25,7 +26,7 @@ void Shell::run()
                     changeDirectory(tokens);
                 }
                 else if (tokens[0] == "myjobs") {
-                    showJobs();
+                    showBackgroundJobs();
                 }
                 else if (tokens[0] == "exit") {
                     break;
@@ -178,23 +179,31 @@ void Shell::executeChild(const std::string& executablePath, const std::vector<st
 
 
 /*
+* clean up the jobs that have finished running.
+*/
+void Shell::cleanUpBackgroundJobs()
+{
+    for (auto it = m_jobs.cbegin(); it != m_jobs.cend();)
+    {
+        pid_t result = waitpid(it->first, nullptr, WNOHANG);
+        if (result > 0) {
+            m_jobs.erase(it++);
+        } else {
+            ++it;
+        }
+    }
+}
+
+
+/*
 * show the jobs that are currently running.
 * display the PID, command and status of each job.
 * kill jobs that have finished running.
 */
-void Shell::showJobs()
+void Shell::showBackgroundJobs() const
 {
-    for (auto it = m_jobs.cbegin(); it != m_jobs.cend();) {
-        pid_t result = waitpid(it->first, nullptr, WNOHANG);
-        if (result == 0) { // job is still running
-            std::cout << "PID: " << it->first << ", Command: " 
-                << it->second << ", Status: Running\n";
-            ++it;
-        } else if (result > 0) { // job has finished running
-            it = m_jobs.erase(it);
-        } else {
-            throw std::runtime_error(ERROR_CHECK_STATUS);
-            ++it;
-        }
+    for (const auto& job : m_jobs) {
+        std::cout << "PID: " << job.first << ", Command: "
+            << job.second << ", Status: Running\n";
     }
 }
