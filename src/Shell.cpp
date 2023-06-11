@@ -2,6 +2,7 @@
 #include "DirectoryManager.h"
 #include "JobsManager.h"
 #include "InputParser.h"
+#include "RedirectionsManager.h"
 #include <iostream>
 #include <cstring>
 #include <unistd.h>
@@ -34,6 +35,7 @@ void Shell::run()
                     break;
                 } 
                 else {
+                    RedirectionsManager::instance().handleRedirections(tokens);
                     if (tokens.back() == "&") {
                         tokens.pop_back(); // remove the "&"
                         executeCommand(tokens, true); // execute in background
@@ -45,7 +47,7 @@ void Shell::run()
                 std::cerr << e.what();
             }
         } 
-
+        RedirectionsManager::instance().reset(); // reset redirections
         std::cout << DirectoryManager::getCurrentDirectory() << "# "; // ready for the next input
 	}
 }
@@ -93,7 +95,8 @@ void Shell::executeCommand(const std::vector<std::string>& tokens, bool isBackgr
 * @param executablePath - the path of the executable file.
 * @tokens - the command and its arguments.
 */
-void Shell::executeChild(const std::string& executablePath, const std::vector<std::string>& tokens)
+void Shell::executeChild(const std::string& executablePath, 
+    const std::vector<std::string>& tokens)
 {
     // convert vector of strings to vector of char* so it can be passed to execvp
     std::vector<char*> args(tokens.size() + 1);
@@ -102,5 +105,6 @@ void Shell::executeChild(const std::string& executablePath, const std::vector<st
             return const_cast<char*>(token.c_str());
         });
     args[tokens.size()] = nullptr; //must be null terminated
+
     execvp(executablePath.c_str(), args.data()); // execute the command
 }

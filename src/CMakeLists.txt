@@ -2,4 +2,5 @@
 											    "Shell.cpp"
 												"DirectoryManager.cpp"
 												"JobsManager.cpp"
-												"InputParser.cpp")
+												"InputParser.cpp"
+												"RedirectionsManager.cpp")
