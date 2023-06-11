@@ -3,4 +3,5 @@
 												"DirectoryManager.cpp"
 												"JobsManager.cpp"
 												"InputParser.cpp"
-												"RedirectionsManager.cpp")
+												"RedirectionsManager.cpp"
+												"Pipes.cpp")
